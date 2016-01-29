@@ -38,5 +38,5 @@
 (score (random-choice (count (:items knapPI_11_20_1000_1)))
        knapPI_11_20_1000_1)
 
-(time (apply max (repeatedly 100000 #(score (random-choice (count (:items knapPI_11_1000_1000_1)))
-       knapPI_11_1000_1000_1))))
+(time (apply max (repeatedly 100000 #(score (random-choice (count (:items knapPI_11_20_1000_1)))
+       knapPI_11_20_1000_1))))
