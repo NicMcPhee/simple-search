@@ -1,9 +1,5 @@
-(ns simple-search.core)
+(ns simple-search.core
+  (:use simple-search.knapsack-examples.knapPI_11_20_1000
+        simple-search.knapsack-examples.knapPI_13_20_1000
+        simple-search.knapsack-examples.knapPI_16_20_1000))
 
-;;; This is an incorrect implementation, such as might be written by
-;;; someone who was used to a Lisp in which an empty list is equal to
-;;; nil.
-(defn first-element [sequence default]
-  (if (empty? sequence)
-    default
-    (first sequence)))
