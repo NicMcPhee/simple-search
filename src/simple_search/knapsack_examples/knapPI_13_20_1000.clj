@@ -1,6 +1,18 @@
 (ns simple-search.knapsack-examples.knapPI_13_20_1000)
 
-(def knapPI_13_20_1000_1 {:capacity 873 :items '({:value 234N, :weight 114N} {:value 39N, :weight 19N} {:value 1053N, :weight 873N} {:value 351N, :weight 291N} {:value 585N, :weight 485N} {:value 78N, :weight 38N} {:value 117N, :weight 97N} {:value 234N, :weight 194N} {:value 312N, :weight 152N} {:value 156N, :weight 76N} {:value 156N, :weight 76N} {:value 273N, :weight 133N} {:value 351N, :weight 291N} {:value 351N, :weight 291N} {:value 312N, :weight 152N} {:value 468N, :weight 388N} {:value 156N, :weight 76N} {:value 585N, :weight 485N} {:value 468N, :weight 388N} {:value 1053N, :weight 873N})})
+(def knapPI_13_20_1000_1
+  {:capacity 873
+   :items '({:value 234N, :weight 114N}
+                    {:value 39N, :weight 19N} {:value 1053N, :weight 873N}
+                    {:value 351N, :weight 291N} {:value 585N, :weight 485N}
+                    {:value 78N, :weight 38N} {:value 117N, :weight 97N}
+                    {:value 234N, :weight 194N} {:value 312N, :weight 152N}
+                    {:value 156N, :weight 76N} {:value 156N, :weight 76N}
+                    {:value 273N, :weight 133N} {:value 351N, :weight 291N}
+                    {:value 351N, :weight 291N} {:value 312N, :weight 152N}
+                    {:value 468N, :weight 388N} {:value 156N, :weight 76N}
+                    {:value 585N, :weight 485N} {:value 468N, :weight 388N}
+                    {:value 1053N, :weight 873N})})
 
 (def knapPI_13_20_1000_2 {:capacity 1710 :items '({:value 1890N, :weight 1710N} {:value 630N, :weight 570N} {:value 1260N, :weight 1140N} {:value 210N, :weight 190N} {:value 610N, :weight 410N} {:value 610N, :weight 410N} {:value 305N, :weight 205N} {:value 366N, :weight 246N} {:value 122N, :weight 82N} {:value 210N, :weight 190N} {:value 1680N, :weight 1520N} {:value 427N, :weight 287N} {:value 366N, :weight 246N} {:value 244N, :weight 164N} {:value 122N, :weight 82N} {:value 305N, :weight 205N} {:value 630N, :weight 570N} {:value 1260N, :weight 1140N} {:value 122N, :weight 82N} {:value 488N, :weight 328N})})
 
