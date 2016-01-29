@@ -2,8 +2,6 @@
   (:use midje.sweet)
   (:use [simple-search.core]))
 
-(println "You should expect to see three failures below.")
-
 (facts "about `first-element`"
   (fact "it normally returns the first element"
     (first-element [1 2 3] :default) => 1
