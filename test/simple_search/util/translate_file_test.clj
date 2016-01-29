@@ -7,13 +7,13 @@
        ((line->map "1,32,724,1") :weight) => 724)
 
 (facts "about `swap-file-extension`"
-       (fact "it replaces `.txt` with `.clj` for simple file names"
-             (swap-file-extension "data.txt") => "data.clj"
-             (swap-file-extension "complex_file_name.txt") => "complex_file_name.clj"))
+       (fact "it replaces `.cvs` with `.clj` for simple file names"
+             (swap-file-extension "data.csv") => "data.clj"
+             (swap-file-extension "complex_file_name.csv") => "complex_file_name.clj"))
 
 (def knapPI_11_10_1000_1 "knapPI_11_10_1000_1
 n 10
-c 970
+c 460
 z 1428
 time 0.00
 1,171,873,0
@@ -65,6 +65,9 @@ time 0.00
          (fact "it has the right name"
                (:name result_11_10_1000_1) => "knapPI_11_10_1000_1"
                (:name result_11_20_1000_1) => "knapPI_11_20_1000_1")
+         (fact "it has the correct capacity"
+               (:capacity result_11_10_1000_1) => 460
+               (:capacity result_11_20_1000_1) => 970)
          (fact "it's vector has the right length"
                (count (:items result_11_10_1000_1)) => 10
                (count (:items result_11_20_1000_1)) => 20)
