@@ -71,3 +71,14 @@ time 0.00
          (fact "it has the correct last item"
                (last result_11_10_1000_1) => {:value 1020 :weight 660}
                (last result_11_20_1000_1) => {:value 714 :weight 462})))
+
+(facts "about `translate-instances`"
+       (let [result_11_10_1000_1 (translate-single-instance knapPI_11_10_1000_1)
+             result_11_20_1000_1 (translate-single-instance knapPI_11_20_1000_1)
+             results (translate-instances (str knapPI_11_10_1000_1 knapPI_11_20_1000_1))]
+         (fact "it has two resulting vectors"
+               (count results) => 2)
+         (fact "first is correct"
+               (first results) => result_11_10_1000_1)
+         (fact "second is correct"
+               (second results) => result_11_20_1000_1)))

@@ -28,11 +28,23 @@
      :weight (bigint (get parts 2))}))
 
 (defn translate-single-instance
-  "Translate a single knapsack instance from Pisinger's format to an array of maps."
+  "Translate a single knapsack instance from Pisinger's format to an collection of maps."
   [text]
   (let [lines (filter (partial re-find #",")
                       (clojure.string/split-lines text))]
     (map line->map lines)))
+
+(def instance-separator
+  #"-----
+
+")
+
+(defn translate-instances
+  "Translate a collection of knapsack instances from Pisinger's format to a collection
+   of collection of maps."
+  [text]
+  (let [parts (clojure.string/split text instance-separator)]
+    (map translate-single-instance parts)))
 
 (defn swap-file-extension
   "Replace the `.txt` extension with `.clj` on the given file name."
