@@ -19,7 +19,7 @@ time 0.00
 1,171,873,0
 2,918,594,0
 3,408,264,0
-4,714,462,1
+4,714,462,0
 5,510,330,0
 6,114,582,0
 7,76,388,0
@@ -43,7 +43,7 @@ time 0.00
 6,171,873,0
 7,918,594,0
 8,408,264,0
-9,714,462,1
+9,714,462,0
 10,510,330,0
 11,114,582,0
 12,76,388,0
@@ -54,7 +54,7 @@ time 0.00
 17,190,970,0
 18,510,330,0
 19,114,582,0
-20,714,462,1
+20,714,462,0
 -----
 
 ")
@@ -62,21 +62,24 @@ time 0.00
 (facts "about `translate-single-instance`"
        (let [result_11_10_1000_1 (translate-single-instance knapPI_11_10_1000_1)
              result_11_20_1000_1 (translate-single-instance knapPI_11_20_1000_1)]
-         (fact "it has the right length"
-               (count result_11_10_1000_1) => 10
-               (count result_11_20_1000_1) => 20)
+         (fact "it has the right name"
+               (:name result_11_10_1000_1) => "knapPI_11_10_1000_1"
+               (:name result_11_20_1000_1) => "knapPI_11_20_1000_1")
+         (fact "it's vector has the right length"
+               (count (:items result_11_10_1000_1)) => 10
+               (count (:items result_11_20_1000_1)) => 20)
          (fact "it has the correct first item"
-               (first result_11_10_1000_1) => {:value 171 :weight 873}
-               (first result_11_20_1000_1) => {:value 114 :weight 582})
+               (first (:items result_11_10_1000_1)) => {:value 171 :weight 873}
+               (first (:items result_11_20_1000_1)) => {:value 114 :weight 582})
          (fact "it has the correct last item"
-               (last result_11_10_1000_1) => {:value 1020 :weight 660}
-               (last result_11_20_1000_1) => {:value 714 :weight 462})))
+               (last (:items result_11_10_1000_1)) => {:value 1020 :weight 660}
+               (last (:items result_11_20_1000_1)) => {:value 714 :weight 462})))
 
 (facts "about `translate-instances`"
        (let [result_11_10_1000_1 (translate-single-instance knapPI_11_10_1000_1)
              result_11_20_1000_1 (translate-single-instance knapPI_11_20_1000_1)
              results (translate-instances (str knapPI_11_10_1000_1 knapPI_11_20_1000_1))]
-         (fact "it has two resulting vectors"
+         (fact "it has two resulting item sets"
                (count results) => 2)
          (fact "first is correct"
                (first results) => result_11_10_1000_1)

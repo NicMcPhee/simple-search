@@ -1,38 +1,22 @@
 (ns simple-search.util.translate-file
-  (:require [me.raynes.fs :as fs]))
-
-;; "knapPI_11_10_1000_1
-;; n 10
-;; c 970
-;; z 1428
-;; time 0.00
-;; 1,171,873,0
-;; 2,918,594,0
-;; 3,408,264,0
-;; 4,714,462,1
-;; 5,510,330,0
-;; 6,114,582,0
-;; 7,76,388,0
-;; 8,57,291,0
-;; 9,204,132,0
-;; 10,1020,660,0
-;; -----
-
-;; "
+  (:require [clojure.string :as str]
+            [me.raynes.fs :as fs]))
 
 (defn line->map
   "Translates a single line from Psinger's format to a map."
   [line]
-  (let [parts (clojure.string/split line #",")]
+  (let [parts (str/split line #",")]
     {:value (bigint (get parts 1))
      :weight (bigint (get parts 2))}))
 
 (defn translate-single-instance
   "Translate a single knapsack instance from Pisinger's format to an collection of maps."
   [text]
-  (let [lines (filter (partial re-find #",")
-                      (clojure.string/split-lines text))]
-    (map line->map lines)))
+  (let [lines (str/split-lines text)
+        name (first lines)
+        item-lines (filter (partial re-find #",") lines)]
+    {:name name
+     :items (map line->map item-lines)}))
 
 (def instance-separator
   #"-----
@@ -43,7 +27,7 @@
   "Translate a collection of knapsack instances from Pisinger's format to a collection
    of collection of maps."
   [text]
-  (let [parts (clojure.string/split text instance-separator)]
+  (let [parts (str/split text instance-separator)]
     (map translate-single-instance parts)))
 
 (defn swap-file-extension
