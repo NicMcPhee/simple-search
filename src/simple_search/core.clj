@@ -1,42 +1,56 @@
 (ns simple-search.core
   (:use simple-search.knapsack-examples.knapPI_11_20_1000
         simple-search.knapsack-examples.knapPI_13_20_1000
-        simple-search.knapsack-examples.knapPI_16_20_1000))
+        simple-search.knapsack-examples.knapPI_16_200_1000))
 
 (defn random-choice
-  [num-choices]
-  (repeatedly num-choices #(rand-int 2)))
+  [instance]
+  (repeatedly (count (:items instance))
+              #(rand-int 2)))
 
-(:items knapPI_11_20_1000_1)
-
-(random-choice (count (:items knapPI_11_20_1000_1)))
-(random-choice (count (:items knapPI_11_20_1000_1)))
-(random-choice (count (:items knapPI_11_20_1000_1)))
-
-(defn sum-chosen-items
-  [choices items]
-  (let [applied-choices (map (fn [choice item]
-                               (if (zero? choice)
-                                 {:value 0 :weight 0}
-                                 item))
-                             choices items)
-        total-value (reduce + (map :value applied-choices))
-        total-weight (reduce + (map :weight applied-choices))]
-    {:value total-value :weight total-weight}))
-
-(sum-chosen-items (random-choice (count (:items knapPI_11_20_1000_1)))
-                  (:items knapPI_11_20_1000_1))
+; (random-choice knapPI_16_20_1000_1)
 
 (defn score
-  [choices instance]
-  (let [items (:items instance)
-        sums (sum-chosen-items choices items)]
-    (if (> (:weight sums) (:capacity instance))
-      (- (:weight sums))
-      (:value sums))))
+  [instance choice]
+  (let [pairs (map vector choice (:items instance))
+        kept-items (map second (filter #(= 1 (first %)) pairs))
+        total-value (reduce + (map :value kept-items))
+        total-weight (reduce + (map :weight kept-items))]
+    (if (<= total-weight (:capacity instance))
+      total-value
+      (- total-weight))))
 
-(score (random-choice (count (:items knapPI_11_20_1000_1)))
-       knapPI_11_20_1000_1)
+; (score knapPI_16_20_1000_1 (random-choice knapPI_16_20_1000_1))
 
-(time (apply max (repeatedly 100000 #(score (random-choice (count (:items knapPI_11_20_1000_1)))
-       knapPI_11_20_1000_1))))
+(defn random-search
+  [instance num-tries]
+  (apply max (map (partial score instance)
+                  (repeatedly num-tries #(random-choice instance)))))
+
+; (time (random-search knapPI_16_200_1000_1 1000000))
+
+(defn mutate
+  [bits]
+  (let [num-bits (count bits)]
+    (map (fn [bit] (if (zero? (rand-int num-bits))
+                     (- 1 bit)
+                     bit))
+         bits)))
+
+; (mutate [0 1 1 1 0 0 0 1 0])
+
+(defn hill-climbing
+  [instance max-tries]
+  (loop [current (random-choice instance)
+         current-score (score instance current)
+         num-tries 1]
+    ; (println (str current-score " : " (pr-str current)))
+    (if (>= num-tries max-tries)
+      current-score
+      (let [new (mutate current)
+            new-score (score instance new)]
+        (if (> new-score current-score)
+          (recur new new-score (inc num-tries))
+          (recur current current-score (inc num-tries)))))))
+
+(time (hill-climbing knapPI_16_200_1000_1 1000000))
