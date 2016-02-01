@@ -3,8 +3,6 @@
         simple-search.knapsack-examples.knapPI_13_20_1000
         simple-search.knapsack-examples.knapPI_16_20_1000))
 
-knapPI_13_20_1000_1
-
 ;;; An answer will be a map with (at least) four entries:
 ;;;   * :instance
 ;;;   * :choices - a vector of 0's and 1's indicating whether
@@ -35,8 +33,6 @@ knapPI_13_20_1000_1
 
 ;;; It might be cool to write a function that
 ;;; generates weighted proportions of 0's and 1's.
-
-; (repeatedly 10 #(rand-int 2))
 
 (random-answer knapPI_13_20_1000_1
 )
