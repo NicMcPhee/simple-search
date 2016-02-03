@@ -28,11 +28,33 @@
         included (included-items (:items instance) choices)]
     {:instance instance
      :choices choices
-     :total-weight 0
-     :total-value 0}))
+     :total-weight (reduce + (map :weight included))
+     :total-value (reduce + (map :value included))}))
 
 ;;; It might be cool to write a function that
 ;;; generates weighted proportions of 0's and 1's.
 
 (random-answer knapPI_13_20_1000_1
 )
+
+(defn score
+  "Takes the total-weight of the given answer unless it's over capacity,
+   in which case we return 0."
+  [answer]
+  (if (> (:total-weight answer)
+         (:capacity (:instance answer)))
+    0
+    (:total-value answer)))
+
+(defn random-search
+  [instance max-tries]
+  (apply max-key score
+         (repeatedly max-tries #(random-answer instance))))
+
+(time (random-search knapPI_16_20_1000_1 100000
+))
+
+
+
+
+
