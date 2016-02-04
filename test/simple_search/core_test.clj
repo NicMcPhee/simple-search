@@ -23,3 +23,27 @@
              => (has every? zero-or-one?)
        (:total-weight (random-answer knapPI_13_20_1000_1)) => (comp not neg?)
        (:total-value (random-answer knapPI_13_20_1000_1)) => (comp not neg?))
+
+(facts "about `score`"
+       (score {:total-weight 100
+               :total-value 25
+               :instance {:capacity 10}}) => 0
+       (score {:total-weight 10
+               :total-value 25
+               :instance {:capacity 100}}) => 25)
+
+(facts "about `add-score`"
+       (add-score
+        {:total-weight 100
+         :total-value 25
+         :instance {:capacity 10}}) => {:total-weight 100
+                                        :total-value 25
+                                        :instance {:capacity 10}
+                                        :score 0}
+       (add-score
+        {:total-weight 10
+         :total-value 25
+         :instance {:capacity 100}}) => {:total-weight 10
+                                         :total-value 25
+                                         :instance {:capacity 100}
+                                         :score 25})

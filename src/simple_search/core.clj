@@ -34,9 +34,6 @@
 ;;; It might be cool to write a function that
 ;;; generates weighted proportions of 0's and 1's.
 
-(random-answer knapPI_13_20_1000_1
-)
-
 (defn score
   "Takes the total-weight of the given answer unless it's over capacity,
    in which case we return 0."
@@ -46,15 +43,17 @@
     0
     (:total-value answer)))
 
+(defn add-score
+  "Computes the score of an answer and inserts a new :score field
+   to the given answer, returning the augmented answer."
+  [answer]
+  (assoc answer :score (score answer)))
+
 (defn random-search
   [instance max-tries]
-  (apply max-key score
-         (repeatedly max-tries #(random-answer instance))))
+  (apply max-key :score
+         (map add-score
+              (repeatedly max-tries #(random-answer instance)))))
 
-(time (random-search knapPI_16_20_1000_1 100000
+(time (random-search knapPI_16_20_1000_1 1000000
 ))
-
-
-
-
-
