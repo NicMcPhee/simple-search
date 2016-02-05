@@ -1,8 +1,10 @@
 # simple-search
 
-The project uses [Midje](https://github.com/marick/Midje/).
+A Clojure implementation of a some simple heuristic search tools for the Spring, 2016, Evolutionary Computation and Artificial Intelligence class. Students will clone this and add functionality as the semester progresses.
 
 ## How to run the tests
+
+The project uses [Midje](https://github.com/marick/Midje/).
 
 `lein midje` will run all tests.
 
