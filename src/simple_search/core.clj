@@ -48,6 +48,27 @@
     (- (:total-weight answer))
     (:total-value answer)))
 
+(defn lexi-score
+  [answer]
+  (let [shuffled-items (shuffle (included-items (:items (:instance answer))
+                                                (:choices answer)))
+        capacity (:capacity (:instance answer))]
+    (loop [value 0
+           weight 0
+           items shuffled-items]
+      (if (empty? items)
+        value
+        (let [item (first items)
+              w (:weight item)
+              v (:value item)]
+          (if (> (+ weight w) capacity)
+            (recur value weight (rest items))
+            (recur (+ value v)
+                   (+ weight w)
+                   (rest items))))))))
+
+; (lexi-score (random-answer knapPI_16_200_1000_1))
+
 (defn add-score
   "Computes the score of an answer and inserts a new :score field
    to the given answer, returning the augmented answer."
