@@ -60,5 +60,36 @@
          (map add-score
               (repeatedly max-tries #(random-answer instance)))))
 
-(time (random-search knapPI_16_20_1000_1 1000000
+(defn mutate-choices
+  [choices]
+  (let [mutation-rate (/ 1 (count choices))]
+    (map #(if (< (rand) mutation-rate) (- 1 %) %) choices)))
+
+(defn mutate-answer
+  [answer]
+  (make-answer (:instance answer)
+               (mutate-choices (:choices answer))))
+
+(def ra (random-answer knapPI_11_20_1000_1))
+
+ra
+
+(mutate-answer ra)
+
+(defn hill-climber
+  [instance mutator max-tries]
+  (loop [current-best (add-score (random-answer instance))
+         num-tries 1]
+    (let [new-answer (add-score (mutator current-best))]
+      (if (>= num-tries max-tries)
+        current-best
+        (if (> (:score new-answer)
+               (:score current-best))
+          (recur new-answer (inc num-tries))
+          (recur current-best (inc num-tries)))))))
+
+(time (random-search knapPI_16_200_1000_1 100000
+))
+
+(time (hill-climber knapPI_16_200_1000_1 mutate-answer 100000
 ))
