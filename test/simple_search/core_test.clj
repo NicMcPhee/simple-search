@@ -47,3 +47,7 @@
                                          :total-value 25
                                          :instance {:capacity 100}
                                          :score 25})
+
+(facts "about `mutate-choices`"
+       (count (mutate-choices [0 1 1 0 0 1])) => 6
+       (mutate-choices [0 1 1 0 0 1]) => (has every? zero-or-one?))
