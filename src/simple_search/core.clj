@@ -45,7 +45,7 @@
   [answer]
   (if (> (:total-weight answer)
          (:capacity (:instance answer)))
-    0
+    (- (:total-weight answer))
     (:total-value answer)))
 
 (defn add-score
