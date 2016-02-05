@@ -20,17 +20,21 @@
        (filter #(= 1 (second %))
                (map vector items choices))))
 
+(defn make-answer
+  [instance choices]
+  (let [included (included-items (:items instance) choices)]
+    {:instance instance
+     :choices choices
+     :total-weight (reduce + (map :weight included))
+     :total-value (reduce + (map :value included))}))
+
 (defn random-answer
   "Construct a random answer for the given instance of the
   knapsack problem."
   [instance]
   (let [choices (repeatedly (count (:items instance))
-                            #(rand-int 2))
-        included (included-items (:items instance) choices)]
-    {:instance instance
-     :choices choices
-     :total-weight (reduce + (map :weight included))
-     :total-value (reduce + (map :value included))}))
+                            #(rand-int 2))]
+    (make-answer instance choices)))
 
 ;;; It might be cool to write a function that
 ;;; generates weighted proportions of 0's and 1's.
