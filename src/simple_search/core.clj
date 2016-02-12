@@ -11,6 +11,9 @@
 ;;;   * :total-weight - the weight of the chosen items
 ;;;   * :total-value - the value of the chosen items
 
+(defrecord Answer
+  [instance choices total-weight total-value])
+
 (defn included-items
   "Takes a sequences of items and a sequence of choices and
   returns the subsequence of items corresponding to the 1's
@@ -23,10 +26,9 @@
 (defn make-answer
   [instance choices]
   (let [included (included-items (:items instance) choices)]
-    {:instance instance
-     :choices choices
-     :total-weight (reduce + (map :weight included))
-     :total-value (reduce + (map :value included))}))
+    (->Answer instance choices
+              (reduce + (map :weight included))
+              (reduce + (map :value included)))))
 
 (defn random-answer
   "Construct a random answer for the given instance of the
