@@ -32,15 +32,37 @@
                :total-value 25
                :instance {:capacity 100}}) => 25)
 
+(facts "about `score`"
+       (penalized-score {:total-weight 100
+               :total-value 25
+               :instance {:capacity 10}}) => -100
+       (penalized-score {:total-weight 10
+               :total-value 25
+               :instance {:capacity 100}}) => 25)
+
 (facts "about `add-score`"
-       (add-score
+       (add-score score
         {:total-weight 100
          :total-value 25
          :instance {:capacity 10}}) => {:total-weight 100
                                         :total-value 25
                                         :instance {:capacity 10}
                                         :score 0}
-       (add-score
+       (add-score score
+        {:total-weight 10
+         :total-value 25
+         :instance {:capacity 100}}) => {:total-weight 10
+                                         :total-value 25
+                                         :instance {:capacity 100}
+                                         :score 25}
+       (add-score penalized-score
+        {:total-weight 100
+         :total-value 25
+         :instance {:capacity 10}}) => {:total-weight 100
+                                        :total-value 25
+                                        :instance {:capacity 10}
+                                        :score -100}
+       (add-score penalized-score
         {:total-weight 10
          :total-value 25
          :instance {:capacity 100}}) => {:total-weight 10
