@@ -103,3 +103,20 @@ ggplot(twenty_item_problems, aes(factor(Max_evals), Non_negative_score)) + geom_
 
 ggplot(two_hundren_item_problems, aes(factor(Max_evals), Non_negative_score)) + geom_boxplot() + facet_grid(Problem ~ Search_method)
 ```
+
+How about statistical significance with respect to interactions?
+
+```{r}
+pairwise.wilcox.test(data_50_runs$Non_negative_score, interaction(data_50_runs$Search_method, data_50_runs$Problem, data_50_runs$Max_evals))
+```
+
+Yikes again! That's a _ton_ of output, but there's quite a lot there if you feel like digging through it. This is indicative of the huge amounts of data that can _easily_ be generated with EC systems, and the challenges of wrestling with all the many complex interactions.
+
+```{r}
+library("rpart")
+
+rp <- rpart(Non_negative_score ~ Search_method + Problem + Max_evals, data=data_50_runs)
+rp
+plot(rp)
+text(rp, use.n = TRUE)
+```
