@@ -1,0 +1,103 @@
+---
+title: "Knapsack experiments"
+author: "Nic McPhee"
+date: "February 14, 2016"
+output: html_document
+---
+
+# 5 runs per treatment
+
+First let's load up the data with just 5 runs per treatment.
+
+```{r}
+data_5_runs <- read.csv("../data/data_5_runs_1000_tries.txt", sep="")
+```
+
+Now let's plot the score as a function of the search method.
+
+```{r, echo=FALSE}
+plot(data_5_runs$Score ~ data_5_runs$Search_method,
+     xlab="Searcher", ylab="Score")
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+This plot definitely suggests that the middle boxplot (`hill_climber_penalized_score`) does the best. It also looks like `random_search` (the right hand boxplot) is perhaps a little better than the leftmost plot (`hill_climber_cliff_score`). We should check, though, whether these differences are statistically significant, especially since it's not entirely clear whether the left and right plots are in fact that different.
+
+Running a pairwise Wilcoxon Rank Sum Test allows us to compare each pair of approaches and see if there are statistically significant differences. We want to use a _pairwise_ test because we're doing multiple comparisons, which increases the chances that one of them appears significant just because we got lucky. Pairwise tests correct for that, increasing our confidence in our results.
+
+We're using the Wilcoxon test because our data (and EC results in general) typically is no where close to normally distributed, so we _don't_ want to use things like standard t-tests that are based on assumptions of normality. Tests like Wilcoxon that are based on ranks and don't assume normality are generally much better choices for the kinds of data that EC systems generate.
+
+```{r}
+pairwise.wilcox.test(data_5_runs$Score, data_5_runs$Search_method)
+```
+
+Don't sweat the warnings at the moment -- these are mostly a function of only having 5 runs for each treatment at this point. The important things are the $p$-values in the ASCII art table. These tell us that `hill_climber_penalized_score` is _very_ strongly different from both of the others ($p < 10^{-8}$ for both), so those differences are _very_ unlikely to be the result of random chance. The difference between `hill_climber_cliff_score` and `random_search` is less clear, however, with a $p$-value of 0.081 suggesting that it wouldn't be shocking if the difference we're looking at were the result of chance rather than some significant difference between the behavior of those two methods.
+
+# 50 runs per treatment
+
+One of the nifty things about evolutionary computation, though, is that we can usually do more runs, and doing more runs will often firm up weak $p$-values _if_ there is indeed a meaningful difference. (And if there's not, then more runs will usually help clarify that as well.)
+
+So let's load up data where we did _50_ runs for each treatment, and plot those results.
+
+```{r}
+data_50_runs <- read.csv("../data/data_50_runs_combined.txt", sep="")
+
+plot(data_50_runs$Score ~ data_50_runs$Search_method,
+     xlab="Searcher", ylab="Score")
+``````
+
+Yikes -- there are negative values for some of the `hill_climber_penalized_score` runs! This is because for some of the harder problems with smaller `Max_evals` the hill climber wasn't actually able to make it out of the "illegal" zone, so the best answer at the end of the run was still negative.
+
+To make our comparisons a little more apples to apples, let's convert negative values to be zeros.
+
+```{r}
+plot(ifelse(data_50_runs$Score<0, 0, data_50_runs$Score) ~ data_50_runs$Search_method,
+     xlab="Searcher", ylab="Score")
+```
+
+The general picture looks similar to the earlier situation, with the middle boxplot definitely looking better than the other two, but the situation between the leftmost and rightmost plots not being entirely clear. So let's run a test.
+
+```{r}
+pairwise.wilcox.test(ifelse(data_50_runs$Score<0, 0, data_50_runs$Score), data_50_runs$Search_method)
+```
+
+Now all the differences are strongly significant! ($<2^{-16}$ is R's way of saying "Wow -- that's as significant as I know how to possibly talk about!".) This is not uncommon if you've done a fair number of runs -- if there's a meaningful difference you can do enough runs to make that super clear.
+
+Note, however, that while `random_search` is better than `hill_climber_cliff_score`, the median (the thick horizontal bar) is about the same for the two, so we wouldn't expect _huge_ differences between then. Certainly the improvements in performance that we see with `hill_climber_penalized_score` are much more interesting.
+
+# How do things change by problem?
+
+Let's load the `ggplot2` package
+
+```{r}
+library("ggplot2")
+```
+
+and use it's nice faceting features to see how the differences change from problem to problem. Because I was a dope and didn't output the number of items as a column in my data, I'm going to use a pretty ugly `subset` to separate the 20 item cases from the 200 item cases; if I had more time I'd go back and regenerate the data with the number of items (and probably the "kind" of problem, i.e, the 11, 13, or 16 in the name) as a column so I could easily pull out runs with that property.
+
+```{r}
+twenty_item_problems = subset(data_50_runs, Problem=="knapPI_11_20_1000_4" | Problem=="knapPI_13_20_1000_4" | Problem=="knapPI_16_20_1000_4")
+
+ggplot(twenty_item_problems, aes(Search_method, ifelse(Score<0, 0, Score))) + geom_boxplot() + facet_grid(. ~ Problem)
+
+two_hundren_item_problems = subset(data_50_runs, Problem=="knapPI_11_200_1000_4" | Problem=="knapPI_13_200_1000_4" | Problem=="knapPI_16_200_1000_4")
+
+ggplot(two_hundren_item_problems, aes(Search_method, ifelse(Score<0, 0, Score))) + geom_boxplot() + facet_grid(. ~ Problem)
+```
+
+# How do things change by maximum number of evals?
+
+```{r}
+ggplot(twenty_item_problems, aes(Search_method, ifelse(Score<0, 0, Score))) + geom_boxplot() + facet_grid(. ~ Max_evals)
+
+ggplot(two_hundren_item_problems, aes(Search_method, ifelse(Score<0, 0, Score))) + geom_boxplot() + facet_grid(. ~ Max_evals)
+```
+
+Or, to see it a different way:
+
+```{r}
+ggplot(twenty_item_problems, aes(factor(Max_evals), ifelse(Score<0, 0, Score))) + geom_boxplot() + facet_grid(Problem ~ Search_method)
+
+ggplot(two_hundren_item_problems, aes(factor(Max_evals), ifelse(Score<0, 0, Score))) + geom_boxplot() + facet_grid(Problem ~ Search_method)
+```
