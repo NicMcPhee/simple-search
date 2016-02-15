@@ -45,21 +45,23 @@ data_50_runs <- read.csv("../data/data_50_runs_combined.txt", sep="")
 
 plot(data_50_runs$Score ~ data_50_runs$Search_method,
      xlab="Searcher", ylab="Score")
-``````
+```
 
 Yikes -- there are negative values for some of the `hill_climber_penalized_score` runs! This is because for some of the harder problems with smaller `Max_evals` the hill climber wasn't actually able to make it out of the "illegal" zone, so the best answer at the end of the run was still negative.
 
-To make our comparisons a little more apples to apples, let's convert negative values to be zeros.
+To make our comparisons a little more apples to apples, let's create a new column (`Non_negative_score`) that has negative scores converted to zeros. One of the very cool features of R is that you can add calculated columns like this quite easily.
 
 ```{r}
-plot(ifelse(data_50_runs$Score<0, 0, data_50_runs$Score) ~ data_50_runs$Search_method,
+data_50_runs$Non_negative_score = ifelse(data_50_runs$Score<0, 0, data_50_runs$Score)
+
+plot(data_50_runs$Non_negative_score ~ data_50_runs$Search_method,
      xlab="Searcher", ylab="Score")
 ```
 
 The general picture looks similar to the earlier situation, with the middle boxplot definitely looking better than the other two, but the situation between the leftmost and rightmost plots not being entirely clear. So let's run a test.
 
 ```{r}
-pairwise.wilcox.test(ifelse(data_50_runs$Score<0, 0, data_50_runs$Score), data_50_runs$Search_method)
+pairwise.wilcox.test(data_50_runs$Non_negative_score, data_50_runs$Search_method)
 ```
 
 Now all the differences are strongly significant! ($<2^{-16}$ is R's way of saying "Wow -- that's as significant as I know how to possibly talk about!".) This is not uncommon if you've done a fair number of runs -- if there's a meaningful difference you can do enough runs to make that super clear.
@@ -79,25 +81,25 @@ and use it's nice faceting features to see how the differences change from probl
 ```{r}
 twenty_item_problems = subset(data_50_runs, Problem=="knapPI_11_20_1000_4" | Problem=="knapPI_13_20_1000_4" | Problem=="knapPI_16_20_1000_4")
 
-ggplot(twenty_item_problems, aes(Search_method, ifelse(Score<0, 0, Score))) + geom_boxplot() + facet_grid(. ~ Problem)
+ggplot(twenty_item_problems, aes(Search_method, Non_negative_score)) + geom_boxplot() + facet_grid(. ~ Problem)
 
 two_hundren_item_problems = subset(data_50_runs, Problem=="knapPI_11_200_1000_4" | Problem=="knapPI_13_200_1000_4" | Problem=="knapPI_16_200_1000_4")
 
-ggplot(two_hundren_item_problems, aes(Search_method, ifelse(Score<0, 0, Score))) + geom_boxplot() + facet_grid(. ~ Problem)
+ggplot(two_hundren_item_problems, aes(Search_method, Non_negative_score)) + geom_boxplot() + facet_grid(. ~ Problem)
 ```
 
 # How do things change by maximum number of evals?
 
 ```{r}
-ggplot(twenty_item_problems, aes(Search_method, ifelse(Score<0, 0, Score))) + geom_boxplot() + facet_grid(. ~ Max_evals)
+ggplot(twenty_item_problems, aes(Search_method, Non_negative_score)) + geom_boxplot() + facet_grid(. ~ Max_evals)
 
-ggplot(two_hundren_item_problems, aes(Search_method, ifelse(Score<0, 0, Score))) + geom_boxplot() + facet_grid(. ~ Max_evals)
+ggplot(two_hundren_item_problems, aes(Search_method, Non_negative_score)) + geom_boxplot() + facet_grid(. ~ Max_evals)
 ```
 
 Or, to see it a different way:
 
 ```{r}
-ggplot(twenty_item_problems, aes(factor(Max_evals), ifelse(Score<0, 0, Score))) + geom_boxplot() + facet_grid(Problem ~ Search_method)
+ggplot(twenty_item_problems, aes(factor(Max_evals), Non_negative_score)) + geom_boxplot() + facet_grid(Problem ~ Search_method)
 
-ggplot(two_hundren_item_problems, aes(factor(Max_evals), ifelse(Score<0, 0, Score))) + geom_boxplot() + facet_grid(Problem ~ Search_method)
+ggplot(two_hundren_item_problems, aes(factor(Max_evals), Non_negative_score)) + geom_boxplot() + facet_grid(Problem ~ Search_method)
 ```
