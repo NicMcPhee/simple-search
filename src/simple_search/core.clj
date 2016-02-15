@@ -121,11 +121,11 @@
           (recur new-answer (inc num-tries))
           (recur current-best (inc num-tries)))))))
 
-(time (random-search score knapPI_16_200_1000_1 100000
-))
+; (time (random-search score knapPI_16_200_1000_1 100000
+; ))
 
-(time (hill-climber mutate-answer score knapPI_16_200_1000_1 100000
-))
+; (time (hill-climber mutate-answer score knapPI_16_200_1000_1 100000
+; ))
 
-(time (hill-climber mutate-answer penalized-score knapPI_16_200_1000_1 100000
-))
+; (time (hill-climber mutate-answer penalized-score knapPI_16_200_1000_1 100000
+; ))
