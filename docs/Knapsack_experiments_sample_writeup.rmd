@@ -1,0 +1,126 @@
+---
+title: "Knapsack experiments sample write-up"
+author: "Nic McPhee"
+date: "February 18, 2016"
+output: 
+  html_document:
+    toc: true
+---
+
+_This is an example of the kind of write-up that I'm looking for on this first set of experiments. You don't need to duplicate this exactly by any means, but I'm hoping this will give you a sense of what we're looking for. You should at a minimum describe what search methods you used and why, as well as analyzing and discussing your results. You don't need to "win" here, so it's totally OK if your analysis ends up being something of the form "Well, that didn't work very well", but I do really want you to think about what's happening in your data and make some effort to explain and understand what you're seeing._
+
+# Introduction
+
+In this set of experiments I explore the performance of three different search techniques on a set of six knapsack problems, with two different values for the maximum number of tries (i.e., the maximum number of evaluated answers).
+
+One search method is simple random search (labelled `Random` in the results), which generated `max-tries` different random answers and returns the best from that pool. The other two are both simple hill-climbers that start with a randomly generated answer, and then repeatedly mutate the best answer found so far, keeping the better of the original and the tweaked answer at each step. The two differ in how they score an answer. The first (labelled `HC_zero` below) gives an answer that is over-capacity a score of 0, while the second (labelled `HC_penalty`) gives an over-capacity answer a score that is the negative of that answer's total weight. The hope was that the second approach would provide a gradiant for answers that were over capacity, which would help the hill-climber find its way out of that large space of over-capacity solutions into the space of "legal" answers.
+
+My mutation operator uses a common approach in genetic algorithms of flipping a bit with probability $1/N$ where $N$ is the length of the bit string. Thus we'll flip bits with a probability $1/20$ for a bitstring of length 20 (i.e., a knapsack problem with 20 items), and with probability $1/200$ for a bitstring of length 20. This means that we'll flip one bit on average, but sometimes flip several, and sometimes flip none. (In the context of a hill climber, flipping zero bits is wasteful and pointless, so in retrospect I probably should have ensured that I flipped at least _one_ bit. When we get to genetic algorithms in a bit and have crossover as well as mutation, sometimes having zero flipped bits will make sense.)
+
+Half of these runs use 1,000 `max-tries`, while the other half use 10,000. I'm pretty sure even more tries would help, especially on the larger problems, but my goal here was more to assess the impact relative performance of the three search techniques rather than try to optimally solve the problems, so I capped it at 10,000 so I wouldn't spend forever generating data.
+
+# Experimental setup
+
+I applied each combination of these 3 searchers and two values of `max-tries` to fairly randomly chosen knapsack problems:
+
+* `knapPI_11_20_1000_4`
+* `knapPI_13_20_1000_4` 
+* `knapPI_16_20_1000_4`
+* `knapPI_11_200_1000_4`
+* `knapPI_13_200_1000_4`
+* `knapPI_16_200_1000_4`
+
+(These names are abbreviated to, e.g., `k_11_20_4`, in diagrams below.) Half of these are 20 item problems, and half are 200 item problems. Ultimately we'll probably want to apply our techniques to larger problems, but again my goal here was to try to understand the differences between my three search techniques, so I really just wanted hard enough problems to expose those differences.
+
+I did 50 indepedent runs of each treatment on each problem, for a total of
+
+$$3 \times 2 \times 6 \times 50 = 1800 \textrm{ runs}$$
+
+# Results
+
+## A basic comparison of the searchers
+
+As we can see in the plot below, the hill-climber with penalized fitness (`HC_penalty`) sometimes returns negative scores, i.e., it doesn't always manage to "climb" out of the realm of illegal solutions with the given maximum number of tries.
+
+```{r}
+data_50_runs <- read.csv("../data/data_50_runs_combined.txt", sep="")
+
+plot(data_50_runs$Score ~ data_50_runs$Search_method,
+     xlab="Searcher", ylab="Score")
+```
+
+A quick check confirms that (a) there aren't too many such runs (28 in total) and (b) that all of them are on the 200 item problems.
+
+```{r}
+negs <- subset(data_50_runs, Score<0)
+nrow(negs)
+unique(negs$Problem)
+```
+
+Since we don't really care _how_ illegal our final solutions are, I made a new column (`Non_negative_score`) that has negative scores converted to zeros. This gives us a plot that is arguably a more "sensible" comparison than the one with the negative values.
+
+```{r}
+data_50_runs$Non_negative_score = ifelse(data_50_runs$Score<0, 0, data_50_runs$Score)
+
+plot(data_50_runs$Non_negative_score ~ data_50_runs$Search_method,
+     xlab="Searcher", ylab="Score")
+```
+
+Here it looks like the leftmost method (`HC_penalty`) is clearly better than the other two, although the situation between the middle (`HC_zero`) and rightmost (`Random`) results isn't entirely clear. It looks like `Random` might be better than `HC_zero`, but it's not obvious if that difference is statistically significant.
+
+So let's run a pairwise Wilcoxon test:
+
+```{r}
+pairwise.wilcox.test(data_50_runs$Non_negative_score, data_50_runs$Search_method)
+```
+
+All the differences are strongly significant, with $p<2^{-16}$ in each case. Note, however, that while `Random` is better than `HC_zero`, the median is about the same for the two, so we wouldn't expect _huge_ differences between then. Certainly the improvements in performance that we see with `HC_penalty` are much more interesting.
+
+## How do things change by problem? Max evals?
+
+We saw earlier that there was some difference between the 20 and 200 item problems, because all the negative final results from `HC_penalty` were on 200 item problems. This plot shows the performance on all six problems, regardless of search method used:
+
+```{r}
+plot(data_50_runs$Non_negative_score ~ data_50_runs$Problem,
+     xlab="Searcher", ylab="Score")
+```
+
+There are clearly differences. Some, such as the much higher values on the rightmost boxplot, are likely at least partly because of differences in the maximum possible values of the problems. Others seem to be more about the difficulty of the problems; the second problem (`knapPI_11_200_1000_4`) has a lower median than several other problems despite having an apparently higher possible value, suggesting that it's harder than those problems (at least for these searchers).
+
+The following plot shows the performance broken out by essentially _all_ our independent variables: Searcher, problem, and `max-tries`.
+
+```{r warning=FALSE}
+library("ggplot2")
+
+ggplot(data_50_runs, 
+       aes(x=factor(Max_evals), y=Non_negative_score, group=Max_evals)) + 
+  geom_boxplot() + facet_grid(Search_method ~ Problem)
+```
+
+Reading this horizontally shows differences in the problems with, for example, `knapPI_16_200_1000_4` clearly having much higher values (at least for `HC_penalty`) than any of the other problems. Reading the columns vertically shows differences across searchers for a specific problem; it's clear for example that whatever advantage `HC_penalty` has is *much* stronger on the 200 item problems, where the other two searchers never get above zero.
+
+This also suggests that using 10,000 tries instead of 1,000 often didn't change things much. There are exceptions (e.g., `knapPI_16_2000_1000_4` on `HC_penalty` again), but typically the medians are quite close. This suggests that we might stick to 1,000 tries in future _initial_ explorations, and only switch to larger number of tries when we've identified which searchers, etc., we're especially interested in.
+
+## Recursive partitioning
+
+The results in the previous plot separating things by problem, searcher, and `max-tries` suggests that the interactions of the independent variables is somewhat complex, so I used `rpart` to try to understand the relative importance of the many differences.
+
+```{r}
+library("rpart")
+library("rpart.plot")
+
+rp <- rpart(Non_negative_score ~ Search_method + Problem + Max_evals, data=data_50_runs)
+rp
+
+rpart.plot(rp, type=3, extra=100)
+```
+
+This indicates that despite the various differences between problems and different values of maximum evaluations, the choice of search searcher is the most important first-order difference, splitting on `HC_penalty` (on the right) vs. the other two searchers. After that split, though, the problems were the next most important factor along both branches. Focussing on the more interesting searcher (`HC_penalty`), `knapPI_16_200_1000_4` was "different" than the others, which isn't surprising given the substantially higher maximum values found on that problem than on the other problems. Once `rpart` is focusing on that particular problem, it also highlights the substantial difference between the 1,000 and 10,000 maximum evaluation runs.
+
+# Conclusions
+
+Based on these runs, it's clear that at least for these six problems `HC_penalty` is consistently as good or, in some cases, substantially better than the other two searchers tried here. This suggests that having a gradient to act on in the "illegal" part of the search space is a significant advantage on these problems.
+
+Have more evaluations does sometimes help, and occassionally quite a bit, but it often doesn't make a substantial difference, especially on the easier problems. So I might consider starting with just 1,000 evaluations in future explorations, saving the higher number of evaluations for when I've narrowed down the pool of search tools I really want to explore more deeply. (That would also be a good time to include some test problems with more items.)
+
+Laslty, the facetted plot and the `rpart` analysis make it clear that I _really_ should normalize my data by dividing all my scores by the highest score found for a given problem. That would reduce effects caused by disproportionate maximum values for problems like `knapPI_16_200_1000_4`, and allow tools like `rpart` to focus on differences caused by the choice of searchers or maximum evaluations.
