@@ -27,7 +27,7 @@
              (:label (:problem result))
              (:max-evals result)
              (:run-number result)
-             (:score @(:answer result)))))
+             (long (:score @(:answer result))))))
 
 ;; This really shouldn't be necessary, as I should have included the labels
 ;; in the maps when generated the problem files. Unfortunately I only just
