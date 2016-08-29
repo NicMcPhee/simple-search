@@ -1,6 +1,6 @@
 # simple-search
 
-A Clojure implementation of a some simple heuristic search tools for the Spring, 2016, Evolutionary Computation and Artificial Intelligence class. Students will clone this and add functionality as the semester progresses.
+A Clojure implementation of a some simple heuristic search tools for the Evolutionary Computation and Artificial Intelligence class at the University of Minnesota, Morris. Students will clone this and add functionality as the semester progresses.
 
 ## How to run the tests
 
