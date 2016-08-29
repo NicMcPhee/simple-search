@@ -13,7 +13,13 @@
   (for [searcher searchers
         p problems
         n (range num-replications)]
-    (let [answer (future (searcher p max-evals))]
+    ; The `nil` here sets the answer to initially be nil so we can
+    ; tell if it's been evaluated or not.
+    (let [answer (agent nil)]
+      ; The `send` says to evaluate `(searcher p max-evals)` in another
+      ; thread when convenient, and replace the old value of the answer
+      ; (marked by the placeholder argument `_`) with that new value.
+      (send answer (fn [_] (searcher p max-evals)))
       {:searcher searcher
        :problem p
        :max-evals max-evals
@@ -23,11 +29,13 @@
 (defn print-experimental-results
   [results]
   (doseq [result results]
+    (when (nil? @(:answer result))
+      (await (:answer result)))
     (println (:label (meta (:searcher result)))
              (:label (:problem result))
              (:max-evals result)
              (:run-number result)
-             (:score @(:answer result)))))
+             (long (:score @(:answer result))))))
 
 ;; This really shouldn't be necessary, as I should have included the labels
 ;; in the maps when generated the problem files. Unfortunately I only just
