@@ -1,5 +1,6 @@
 (ns simple-search.experiment
-  (:require [simple-search.core :as core])
+  (:require [simple-search.core :as core]
+  	    [com.climate.claypoole :as cp])
   (:use simple-search.knapsack-examples.knapPI_11_20_1000
         simple-search.knapsack-examples.knapPI_13_20_1000
         simple-search.knapsack-examples.knapPI_16_20_1000
@@ -9,28 +10,24 @@
 
 (defn run-experiment
   [searchers problems num-replications max-evals]
+  (println (cp/ncpus))
   (println "Search_method Problem Max_evals Run Score")
+  (let [pool (cp/threadpool 16)] ; (/ (cp/ncpus) 2))]
   (for [searcher searchers
         p problems
         n (range num-replications)]
     ; The `nil` here sets the answer to initially be nil so we can
     ; tell if it's been evaluated or not.
-    (let [answer (agent nil)]
-      ; The `send` says to evaluate `(searcher p max-evals)` in another
-      ; thread when convenient, and replace the old value of the answer
-      ; (marked by the placeholder argument `_`) with that new value.
-      (send answer (fn [_] (searcher p max-evals)))
+    (let [answer (cp/future pool (searcher p max-evals))]
       {:searcher searcher
        :problem p
        :max-evals max-evals
        :run-number n
-       :answer answer})))
+       :answer answer}))))
 
 (defn print-experimental-results
   [results]
   (doseq [result results]
-    (when (nil? @(:answer result))
-      (await (:answer result)))
     (println (:label (meta (:searcher result)))
              (:label (:problem result))
              (:max-evals result)
@@ -80,4 +77,3 @@
                    (Integer/parseInt num-repetitions)
                    (Integer/parseInt max-answers)))
   (shutdown-agents))
-
