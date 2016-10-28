@@ -79,11 +79,11 @@ library("ggplot2")
 and use it's nice faceting features to see how the differences change from problem to problem. Because I was a dope and didn't output the number of items as a column in my data, I'm going to use a pretty ugly `subset` to separate the 20 item cases from the 200 item cases; if I had more time I'd go back and regenerate the data with the number of items (and probably the "kind" of problem, i.e, the 11, 13, or 16 in the name) as a column so I could easily pull out runs with that property.
 
 ```{r}
-twenty_item_problems = subset(data_50_runs, Problem=="knapPI_11_20_1000_4" | Problem=="knapPI_13_20_1000_4" | Problem=="knapPI_16_20_1000_4")
+twenty_item_problems = subset(data_50_runs, Problem=="k_11_20_4" | Problem=="k_13_20_4" | Problem=="k_16_20_4")
 
 ggplot(twenty_item_problems, aes(Search_method, Non_negative_score)) + geom_boxplot() + facet_grid(. ~ Problem)
 
-two_hundren_item_problems = subset(data_50_runs, Problem=="knapPI_11_200_1000_4" | Problem=="knapPI_13_200_1000_4" | Problem=="knapPI_16_200_1000_4")
+two_hundren_item_problems = subset(data_50_runs, Problem=="k_11_200_4" | Problem=="k_13_200_4" | Problem=="k_16_200_4")
 
 ggplot(two_hundren_item_problems, aes(Search_method, Non_negative_score)) + geom_boxplot() + facet_grid(. ~ Problem)
 ```
@@ -112,11 +112,51 @@ pairwise.wilcox.test(data_50_runs$Non_negative_score, interaction(data_50_runs$S
 
 Yikes again! That's a _ton_ of output, but there's quite a lot there if you feel like digging through it. This is indicative of the huge amounts of data that can _easily_ be generated with EC systems, and the challenges of wrestling with all the many complex interactions.
 
+# Recursive partitioning
+
+When there are a lot of potentially interacting influences on the behavior of a system
+(which is almost always true in EC systems), then I often find `rpart` (recursive 
+partitioning) to useful. This takes the n-dimensional space of points (e.g. scores in
+our case) and recursively partitions it into smaller and smaller subsets that are
+defined by particular values or choices.
+
+The following, for example, partitions our scoring results by cutting along combinations
+of the three axes `Search_method`, `Problem`, and `Max_evals`.
+
 ```{r}
 library("rpart")
+library("rpart.plot")
 
 rp <- rpart(Non_negative_score ~ Search_method + Problem + Max_evals, data=data_50_runs)
 rp
-plot(rp)
-text(rp, use.n = TRUE)
+rpart.plot(rp)
 ```
+
+The text output has all the details, but the tree diagram is probably easier to read.
+The top light blue node is saying that if we average our scores over all (100%) our 
+runs, we'd have an average score of 1,429. `rpart`
+then found that the most informative first split was to split the data into runs using
+the `HC_zero` and `Random` search methods (the left side) versus `HC_penalty` (the 
+right side). This isn't surprising since the earlier results suggest that `HC_penalty`
+is definitely better than the other two. The light blue node at the top of the left
+sub-tree tells us that that 2/3 (67%) of the data has an average score of 332, while
+the darker blue node at the top of the right sub-tree says that third has an average
+score of 3,624, which is more than 10 times better than the left group.
+
+Going down the right sub-tree, `rpart` found that the best way to split that third
+of the data was by separating the data by problem. The 2,467 sub-node is the data for
+problems `k_11_20_4`, `k_11_200_4`, `k_13_20_4`, `k_13_200_4`, `k_16_20_4 500` (28% 
+of the full data set), which it's right sibling (the 9,404 node) is just problem `k_16_200_4`. This also isn't too surprising since the item values for `k_16_200_4` 
+are a lot higher than the other problems, so it's easier to get high scores there.
+
+Exploring the 9,404 node, we find that `rpart` then splits on `Max_evals`, with
+the 1,000 eval runs having an average score of 7,449, and the 10,000 eval runs having
+an average score of 11K!
+
+Notice that this was the _only_ place where `rpart` split on `Max_evals`. For every
+other combination of search methods and problems, splitting on `Max_evals` just didn't
+have a sufficiently significant impact. The left most bottom-level node, for example
+has 44% of all the data in it, so you might think that there might be meaningful ways
+to split that further. The scores in that subset are so consistently low (averaging
+just 78, and mostly being just 0), however, that `rpart` can't find a 
+meaningful/informative way to split that node.
