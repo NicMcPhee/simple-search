@@ -79,11 +79,11 @@ library("ggplot2")
 and use it's nice faceting features to see how the differences change from problem to problem. Because I was a dope and didn't output the number of items as a column in my data, I'm going to use a pretty ugly `subset` to separate the 20 item cases from the 200 item cases; if I had more time I'd go back and regenerate the data with the number of items (and probably the "kind" of problem, i.e, the 11, 13, or 16 in the name) as a column so I could easily pull out runs with that property.
 
 ```{r}
-twenty_item_problems = subset(data_50_runs, Problem=="knapPI_11_20_1000_4" | Problem=="knapPI_13_20_1000_4" | Problem=="knapPI_16_20_1000_4")
+twenty_item_problems = subset(data_50_runs, Problem=="k_11_20_4" | Problem=="k_13_20_4" | Problem=="k_16_20_4")
 
 ggplot(twenty_item_problems, aes(Search_method, Non_negative_score)) + geom_boxplot() + facet_grid(. ~ Problem)
 
-two_hundren_item_problems = subset(data_50_runs, Problem=="knapPI_11_200_1000_4" | Problem=="knapPI_13_200_1000_4" | Problem=="knapPI_16_200_1000_4")
+two_hundren_item_problems = subset(data_50_runs, Problem=="k_11_200_4" | Problem=="k_13_200_4" | Problem=="k_16_200_4")
 
 ggplot(two_hundren_item_problems, aes(Search_method, Non_negative_score)) + geom_boxplot() + facet_grid(. ~ Problem)
 ```
